@@ -30,37 +30,51 @@ app.post("/", async (request, response) => {
 });
 
 // READ
-app.get("/:id", (request, response) => {
-  const obj = dictionary[request.params.id];
+app.get("/:id", async (request, response) => {
+  
+  const obj = await User.findById(request.params.id);
   if (!obj) {
     return response.status(404).send({
-      message: "Not found"
+      message: "Usuario nao encntrado"
     });
   }
+  
   response.status(200).send(obj);
 });
 
 // UPDATE
-app.put("/:id", (request, response) => {
-  const obj = request.body;
-  if (!dictionary[request.params.id]) {
-    return response.status(404).send({
-      message: "Usuário não encontrado."
+app.put("/:id", async (request, response) => {
+  
+  const id = request.params.id;
+  const body = request.body;
+  try {
+    const result = await User.findByIdAndUpdate(id, { 
+      username, password
     });
+
+    response.status(200).json({ 
+      username, password
+    });
+    
+  } catch {
+    response.status(401).json({'ID de usuario incorreto'});
   }
-  dictionary[request.params.id] = obj;
-  response.status(200).send(obj);
 });
 
 // DELETE
 app.delete("/:id", (request, response) => {
-  if (!dictionary[request.params.id]) {
-    return response.status(404).send({
-      message: "Usuário não encontrado."
-    });
-  }
-  dictionary[request.params.id] = null;
-  response.status(204).end();
+  
+  User.findByIdAndDelete(request.params.id, (err, user) => {
+    if (err) {
+      return response.status(404).send({
+        message: "Usuário não encontrado"
+      })
+    } else {
+      return response.status(201).send({
+        message: "Usuario deletado"
+      });
+    }
+  });
 });
 
 const port = 8090;
